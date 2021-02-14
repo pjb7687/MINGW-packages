@@ -33,7 +33,7 @@ depends=("${MINGW_PACKAGE_PREFIX}-bzip2"
          "${MINGW_PACKAGE_PREFIX}-zstd")
          #"${MINGW_PACKAGE_PREFIX}-perl"
 optdepends=("${MINGW_PACKAGE_PREFIX}-ghostscript: for Ghostscript support")
-options=('staticlibs' 'strip' 'libtool')
+options=('staticlibs' 'strip' 'libtool' 'q16' 'q32')
 source=(https://sourceforge.net/projects/graphicsmagick/files/${_realname}/${pkgver}/GraphicsMagick-${pkgver}.tar.xz
         001-relocate.patch
         002-fix-find-gdi32.patch)
@@ -77,7 +77,14 @@ build() {
   [[ -d ${srcdir}/build-${MINGW_CHOST} ]] && rm -rf ${srcdir}/build-${MINGW_CHOST}
   mkdir -p ${srcdir}/build-${MINGW_CHOST}
   cd ${srcdir}/build-${MINGW_CHOST}
-
+  
+  qdepth=8
+  if check_option "q16" "y"; then
+    qdepth=16
+  elif check_option "q32" "y"; then
+    qdepth=32
+  fi
+  
   ../GraphicsMagick-${pkgver}/configure \
     --prefix=${MINGW_PREFIX} \
     --build=${MINGW_CHOST} \
@@ -94,7 +101,8 @@ build() {
     --without-fpx \
     --without-dps \
     --without-perl \
-    --without-x
+    --without-x \
+    --with-quantum-depth=${qdepth}
 
   make
 }
